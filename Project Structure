@@ -1,0 +1,42 @@
+lib/
+├── main.dart                    # Entry point of the application
+├── models/                      # Data models and repositories (Model Tier)
+│   ├── database/                # Database-related utilities and repositories
+│   │   ├── db_helper.dart           # SQLite database initialization and helper functions
+│   │   ├── event_repository.dart    # Repository for event-related operations
+│   │   ├── friend_repository.dart   # Repository for friend-related operations
+│   │   ├── gift_repository.dart     # Repository for gift-related operations
+│   │   ├── user_repository.dart     # Repository for user-related operations
+│   ├── event_model.dart         # Event data model
+│   ├── friend_model.dart        # Friend data model
+│   ├── gift_model.dart          # Gift data model
+│   ├── user_model.dart          # User data model
+├── views/                       # UI screens and reusable widgets (View Tier)
+│   ├── home_page.dart           # Home Page UI
+│   ├── sign_in_page.dart        # Sign-In Page UI
+│   ├── sign_up_page.dart        # Sign-Up Page UI
+│   ├── event_list_page.dart     # List of events UI
+│   ├── gift_list_page.dart      # List of gifts UI
+│   ├── gift_details_page.dart   # Gift details UI
+│   ├── profile_page.dart        # User profile UI
+│   └── pledged_gifts_page.dart  # Pledged gifts list UI
+└── controllers/                 # Business logic and state management (Controller Tier)
+    ├── auth_controller.dart         # Authentication logic
+    ├── home_controller.dart         # Home feature logic
+    ├── event_controller.dart        # Event management logic
+    ├── gift_controller.dart         # Gift management logic
+    ├── profile_controller.dart      # Profile management logic
+    └── pledged_controller.dart      # Pledged gifts logic
+
+
+
+// Collections //
+    users
+    │── friends
+    │── pledgedGifts
+    │── notifications
+    └── events
+       └── gifts
+
+
+flutter test lib/test/views/sign_in_page_test.dart

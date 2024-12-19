@@ -1,0 +1,58 @@
+plugins {
+    id "com.android.application"
+    id "com.google.gms.google-services" // Firebase plugin
+    id "kotlin-android"
+    id "dev.flutter.flutter-gradle-plugin" // Flutter plugin
+}
+
+android {
+    namespace = "com.example.hedieaty"
+    compileSdk = 34 // Ensure it matches Firebase dependencies
+
+    defaultConfig {
+        applicationId = "com.example.hedieaty"
+        minSdk = 23 // Match Firebase minSdk
+        targetSdk = 33
+        versionCode = 1
+        versionName = "1.0"
+    }
+
+    buildTypes {
+        release {
+            signingConfig = signingConfigs.debug // Replace with production signing in a release build
+            minifyEnabled false
+            shrinkResources false // Set to true only if minifyEnabled is true and resources are unused
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+        coreLibraryDesugaringEnabled true // Enable desugaring
+    }
+
+    kotlinOptions {
+        jvmTarget = "17"
+    }
+
+    ndkVersion = "25.1.8937393"
+}
+
+dependencies {
+    // Firebase dependencies
+    implementation platform('com.google.firebase:firebase-bom:32.0.0') // Firebase BOM
+    implementation 'com.google.firebase:firebase-auth'
+    implementation 'com.google.firebase:firebase-firestore'
+    implementation 'com.google.firebase:firebase-messaging'
+
+    // Flutter dependencies
+    implementation 'androidx.core:core-ktx:1.10.1'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+
+    // Required for Java 8+ features
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.3'
+
+    // Kotlin
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:1.9.0"
+}
