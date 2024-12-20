@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:hedieaty/controllers/auth_controller.dart';
-import 'package:hedieaty/controllers/event_controller.dart';
-import 'package:hedieaty/controllers/gift_controller.dart';
-import 'package:hedieaty/controllers/pledged_controller.dart';
-import 'package:hedieaty/views/HomeFriendsListScreen.dart';
-import 'package:hedieaty/views/MyPledgedGiftsPage.dart';
-import 'package:hedieaty/views/EventListPage.dart';
-import 'package:hedieaty/views/SignInPage.dart';
+import 'package:hedieatyfinal/controllers/auth_controller.dart';
+import 'package:hedieatyfinal/controllers/event_controller.dart';
+import 'package:hedieatyfinal/controllers/pledged_controller.dart';
+import 'package:hedieatyfinal/controllers/home_controller.dart';
+import 'package:hedieatyfinal/views/HomeFriendsListScreen.dart';
+import 'package:hedieatyfinal/views/MyPledgedGiftsPage.dart';
+import 'package:hedieatyfinal/views/EventListPage.dart';
+import 'package:hedieatyfinal/views/SignInPage.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -15,11 +15,11 @@ class ProfilePage extends StatefulWidget {
   _ProfilePageState createState() => _ProfilePageState();
 }
 
-class _ProfilePageState extends State<ProfilePage> {
+class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStateMixin {
   late AuthController _authController;
   late EventController _eventController;
-  late GiftController _giftController;
   late PledgedController _pledgedController;
+  late HomeController _homeController;
 
   String userName = '';
   String userEmail = '';
@@ -27,16 +27,39 @@ class _ProfilePageState extends State<ProfilePage> {
   List<Map<String, dynamic>> userEvents = [];
   List<Map<String, dynamic>> pledgedGifts = [];
   int _selectedIndex = 3;
+  bool isEditingName = false;
+  final TextEditingController _nameController = TextEditingController();
+
+  late AnimationController _animationController;
+  late Animation<Offset> _slideAnimation;
 
   @override
   void initState() {
     super.initState();
+
     _authController = AuthController();
     _eventController = EventController();
-    _giftController = GiftController();
     _pledgedController = PledgedController();
+    _homeController = HomeController();
+
     _fetchUserProfileAndEvents();
     _fetchPledgedGifts();
+
+    // Initialize Slide Animation
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 1),
+    );
+
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, -1),
+      end: const Offset(0, 0),
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeInOut,
+    ));
+
+    _animationController.forward();
   }
 
   void _fetchUserProfileAndEvents() async {
@@ -51,6 +74,7 @@ class _ProfilePageState extends State<ProfilePage> {
         setState(() {
           userName = userProfile['name'] ?? 'No Name';
           userEmail = userProfile['email'] ?? 'No Email';
+          _nameController.text = userName;
         });
       }
 
@@ -81,181 +105,180 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  Future<void> _saveNameChanges() async {
+    final newName = _nameController.text.trim();
+    if (newName.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Name cannot be empty.")),
+      );
+      return;
+    }
 
-  // Navigation Handler
+    try {
+      await _authController.updateUser(currentUserId, {'name': newName});
+      await _homeController.updateFriendsName(currentUserId, currentUserId, newName);
+
+      setState(() {
+        userName = newName;
+        isEditingName = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Name updated successfully.")),
+      );
+    } catch (e) {
+      print('Error saving name changes: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Failed to save name changes.")),
+      );
+    }
+  }
+
   void _onItemTapped(int index) {
     setState(() => _selectedIndex = index);
 
     switch (index) {
-      case 0: // Navigate to HomeFriendsListScreen
+      case 0:
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (_) => const HomeFriendsListScreen()),
         );
         break;
 
-      case 1: // Navigate to Events Page
+      case 1:
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (_) => EventListPage(
-              friendName: '',
-              userId: currentUserId,
-            ),
+            builder: (_) => EventListPage(friendName: '', userId: currentUserId),
           ),
         );
         break;
 
-      case 2: // Navigate to Pledged Gifts Page
+      case 2:
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (_) => MyPledgedGiftsPage(
-              userId: currentUserId,
-              eventId: '', // Provide eventId if needed
-            ),
+            builder: (_) => MyPledgedGiftsPage(userId: currentUserId, eventId: ''),
           ),
         );
         break;
 
-      case 3: // Stay on Profile Page
+      case 3:
         break;
     }
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  Widget _buildTile({required String title, required String subtitle}) {
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      color: const Color(0xffd1c4e9),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: ListTile(
+        title: Text(title, style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+        subtitle: Text(subtitle, style: const TextStyle(color: Colors.black87)),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (_) => const HomeFriendsListScreen()),
-            );
-          },
-        ),
-        title: const Text(
-          'Profile',
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: const Color(0xffba8fe3),
-        iconTheme: const IconThemeData(color: Colors.black),
+        title: const Text('Profile', style: TextStyle(color: Colors.white)),
+        backgroundColor: const Color(0xff6a1b9a),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Display User Name and Email
-              Text(
-                'Name: $userName',
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+      body: Stack(
+        children: [
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xff6a1b9a), Color(0xff9c27b0)],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
               ),
-              const SizedBox(height: 10),
-              Text(
-                'Email: $userEmail',
-                style: const TextStyle(fontSize: 16),
-              ),
-              const SizedBox(height: 20),
-
-              // User's Events Section
-              const Text(
-                'My Events:',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 10),
-              userEvents.isEmpty
-                  ? const Text('No events found.')
-                  : ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: userEvents.length,
-                itemBuilder: (context, index) {
-                  final event = userEvents[index];
-                  return Card(
-                    margin: const EdgeInsets.symmetric(vertical: 8),
-                    child: ListTile(
-                      title: Text(event['name']),
-                      subtitle: Text(
-                        'Date: ${event['date']}\n'
-                            'Location: ${event['location']}\n'
-                            '${event['description']}',
-                      ),
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(height: 20),
-
-              // Pledged Gifts Section
-              const Text(
-                'My Pledged Gifts:',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 10),
-              pledgedGifts.isEmpty
-                  ? const Text('No pledged gifts.')
-                  : ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: pledgedGifts.length,
-                itemBuilder: (context, index) {
-                  final gift = pledgedGifts[index];
-                  return Card(
-                    margin: const EdgeInsets.symmetric(vertical: 8),
-                    child: ListTile(
-                      title: Text(gift['name'] ?? 'Unnamed Gift'),
-                      subtitle: Text(
-                        'Category: ${gift['category']}\n'
-                            'Description: ${gift['description']}\n'
-                            'Price: \$${gift['price']}',
-                      ),
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(height: 20),
-
-              // Sign out button
-              Center(
-                child: ElevatedButton(
-                  onPressed: () async {
-                    await _authController.signOut();
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (_) => SignInPage()),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.redAccent,
-                    padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                  ),
-                  child: const Text(
-                    'Sign Out',
-                    style: TextStyle(color: Colors.white, fontSize: 16),
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
-        ),
+          SlideTransition(
+            position: _slideAnimation,
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: ListView(
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: isEditingName
+                            ? TextField(
+                          controller: _nameController,
+                          decoration: const InputDecoration(
+                            labelText: 'Edit Name',
+                            filled: true,
+                            fillColor: Colors.white,
+                            border: OutlineInputBorder(),
+                          ),
+                        )
+                            : Text(
+                          'Name: $userName',
+                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
+                        ),
+                      ),
+                      IconButton(
+                        icon: Icon(isEditingName ? Icons.check : Icons.edit),
+                        onPressed: () {
+                          if (isEditingName) {
+                            _saveNameChanges();
+                          } else {
+                            setState(() => isEditingName = true);
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Text('Email: $userEmail', style: const TextStyle(fontSize: 16, color: Colors.black)),
+                  const SizedBox(height: 20),
+                  const Text('My Events:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black)),
+                  ...userEvents.map((event) => _buildTile(title: event['name'], subtitle: 'Date: ${event['date']}')),
+                  const SizedBox(height: 20),
+                  const Text('My Pledged Gifts:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black)),
+                  ...pledgedGifts.map((gift) => _buildTile(title: gift['name'] ?? 'Unnamed Gift', subtitle: 'Price: \$${gift['price']}')),
+                  const SizedBox(height: 20),
+                  Center(
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        await _authController.signOut();
+                        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => SignInPage()));
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: const Text('Sign Out', style: TextStyle(color: Colors.white)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
-        selectedItemColor: Colors.black,
-        unselectedItemColor: Colors.black54,
-        backgroundColor: const Color(0xffba8fe3),
+        selectedItemColor: Colors.white,
+        unselectedItemColor: Colors.white54,
+        backgroundColor: const Color(0xff6a1b9a),
+        type: BottomNavigationBarType.fixed,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(Icons.event), label: 'Events'),
-          BottomNavigationBarItem(icon: Icon(Icons.star), label: 'Pledged'),
+          BottomNavigationBarItem(icon: Icon(Icons.star), label: 'Pledged Gifts'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
       ),

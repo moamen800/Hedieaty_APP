@@ -2,14 +2,14 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:hedieaty/controllers/home_controller.dart';
-import 'package:hedieaty/controllers/event_controller.dart';
-import 'package:hedieaty/controllers/auth_controller.dart';
-import 'package:hedieaty/main.dart';
-import 'package:hedieaty/views/MyPledgedGiftsPage.dart';
-import 'package:hedieaty/views/EventListPage.dart';
-import 'package:hedieaty/views/ProfilePage.dart';
-import 'package:hedieaty/views/SignInPage.dart';
+import 'package:hedieatyfinal/controllers/home_controller.dart';
+import 'package:hedieatyfinal/controllers/event_controller.dart';
+import 'package:hedieatyfinal/controllers/auth_controller.dart';
+import 'package:hedieatyfinal/main.dart';
+import 'package:hedieatyfinal/views/MyPledgedGiftsPage.dart';
+import 'package:hedieatyfinal/views/EventListPage.dart';
+import 'package:hedieatyfinal/views/ProfilePage.dart';
+import 'package:hedieatyfinal/views/SignInPage.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class HomeFriendsListScreen extends StatefulWidget {
@@ -19,7 +19,8 @@ class HomeFriendsListScreen extends StatefulWidget {
   _HomeFriendsListScreenState createState() => _HomeFriendsListScreenState();
 }
 
-class _HomeFriendsListScreenState extends State<HomeFriendsListScreen> {
+class _HomeFriendsListScreenState extends State<HomeFriendsListScreen>
+    with SingleTickerProviderStateMixin {
   final HomeController _homeController = HomeController();
   final EventController _eventController = EventController();
   final AuthController _authController = AuthController();
@@ -31,20 +32,35 @@ class _HomeFriendsListScreenState extends State<HomeFriendsListScreen> {
   List<Map<String, dynamic>> filteredFriends = [];
   StreamSubscription<QuerySnapshot>? _notificationSubscription;
 
+  late AnimationController _animationController;
+  late Animation<Offset> _slideAnimation;
+
   @override
   void initState() {
     super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 1),
+    );
+
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, -1), // Start above the screen
+      end: const Offset(0, 0), // End at its position
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeInOut,
+    ));
+
+    _animationController.forward(); // Start the animation
+
     _fetchFriends();
     _fetchUserData();
 
-    // Listen for authentication state changes
     FirebaseAuth.instance.authStateChanges().listen((user) {
       if (user == null) {
-        // User signed out, cancel the listener
         _notificationSubscription?.cancel();
         _notificationSubscription = null;
       } else {
-        // User signed in, start the notification listener
         _listenForNotifications();
       }
     });
@@ -53,11 +69,11 @@ class _HomeFriendsListScreenState extends State<HomeFriendsListScreen> {
   @override
   void dispose() {
     _notificationSubscription?.cancel();
+    _animationController.dispose();
     super.dispose();
   }
 
-  void _listenForNotifications() async {
-    // Cancel any existing listener
+  void _listenForNotifications() {
     _notificationSubscription?.cancel();
     _notificationSubscription = null;
 
@@ -70,7 +86,7 @@ class _HomeFriendsListScreenState extends State<HomeFriendsListScreen> {
           .collection('notifications')
           .where('read', isEqualTo: false)
           .snapshots()
-          .listen((QuerySnapshot snapshot) {
+          .listen((snapshot) {
         for (var doc in snapshot.docs) {
           final notification = doc.data() as Map<String, dynamic>;
           _showLocalNotification(
@@ -78,7 +94,6 @@ class _HomeFriendsListScreenState extends State<HomeFriendsListScreen> {
             '${notification['giftName'] ?? 'a gift'} has been pledged!',
           );
 
-          // Mark the notification as read
           doc.reference.update({'read': true});
         }
       });
@@ -101,13 +116,12 @@ class _HomeFriendsListScreenState extends State<HomeFriendsListScreen> {
     );
 
     await flutterLocalNotificationsPlugin.show(
-      0, // Notification ID
+      0,
       title,
       body,
       notificationDetails,
     );
   }
-
 
   void _fetchFriends() async {
     String? userId = await _authController.getCurrentUserId();
@@ -136,7 +150,7 @@ class _HomeFriendsListScreenState extends State<HomeFriendsListScreen> {
     final user = await _authController.getUserProfile();
     if (user != null) {
       setState(() => userData = user);
-      _listenForNotifications(); // Initialize notifications for the current user
+      _listenForNotifications();
     }
   }
 
@@ -151,11 +165,9 @@ class _HomeFriendsListScreenState extends State<HomeFriendsListScreen> {
   }
 
   void _signOut() async {
-    // Cancel the notification listener
     await _notificationSubscription?.cancel();
     _notificationSubscription = null;
 
-    // Sign out the user
     await _authController.signOut();
     Navigator.pushReplacement(
         context, MaterialPageRoute(builder: (_) => SignInPage()));
@@ -172,7 +184,7 @@ class _HomeFriendsListScreenState extends State<HomeFriendsListScreen> {
         );
         break;
 
-      case 1: // Navigate to My Events
+      case 1:
         String? userId = await _authController.getCurrentUserId();
         if (userId != null) {
           Navigator.pushReplacement(
@@ -184,7 +196,7 @@ class _HomeFriendsListScreenState extends State<HomeFriendsListScreen> {
         }
         break;
 
-      case 2: // Navigate to Pledged Gifts
+      case 2:
         String? userId = await _authController.getCurrentUserId();
         if (userId != null) {
           try {
@@ -215,7 +227,7 @@ class _HomeFriendsListScreenState extends State<HomeFriendsListScreen> {
         }
         break;
 
-      case 3: // Navigate to Profile
+      case 3:
         String? userId = await _authController.getCurrentUserId();
         if (userId != null) {
           Navigator.pushReplacement(
@@ -234,39 +246,47 @@ class _HomeFriendsListScreenState extends State<HomeFriendsListScreen> {
     String? userId = await _authController.getCurrentUserId();
     if (userId != null) {
       await _homeController.deleteFriend(userId, friendId);
-      _fetchFriends(); // Refresh friend list after deletion
+      _fetchFriends();
     }
   }
 
   Widget _buildFriendTile(Map<String, dynamic> friend) {
-    return ListTile(
-      leading: CircleAvatar(
-        backgroundImage: friend['profilePicture'] != null
-            ? AssetImage(friend['profilePicture']!)
-            : const AssetImage('assets/images/profile1.png'),
-      ),
-      title: Text(friend['name']!, style: const TextStyle(fontWeight: FontWeight.bold)),
-      subtitle: Text('View Events for ${friend['name']}'),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          IconButton(
-            icon: const Icon(Icons.event, color: Colors.blue),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) =>
-                      EventListPage(friendName: friend['name']!, userId: friend['friendId']),
-                ),
-              );
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.delete, color: Colors.red),
-            onPressed: () => _deleteFriend(friend['friendId']),
-          ),
-        ],
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: ListTile(
+        leading: CircleAvatar(
+          backgroundImage: friend['profilePicture'] != null
+              ? AssetImage(friend['profilePicture']!)
+              : const AssetImage('assets/images/profile1.png'),
+        ),
+        title: Text(friend['name']!,
+            style: const TextStyle(
+                fontWeight: FontWeight.bold, color: Colors.black87)),
+        subtitle: Text('View Events for ${friend['name']}',
+            style: const TextStyle(color: Colors.black54)),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.event, color: Colors.blue),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => EventListPage(
+                        friendName: friend['name']!, userId: friend['friendId']),
+                  ),
+                );
+              },
+            ),
+            IconButton(
+              icon: const Icon(Icons.delete, color: Colors.red),
+              onPressed: () => _deleteFriend(friend['friendId']),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -275,63 +295,120 @@ class _HomeFriendsListScreenState extends State<HomeFriendsListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Friends List', style: TextStyle(color: Colors.black)),
-        backgroundColor: const Color(0xffba8fe3),
-        automaticallyImplyLeading: false,
+        title: const Text(
+          'Friends List',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+
+        backgroundColor: const Color(0xff6a1b9a),
         actions: [
           IconButton(
-            icon: const Icon(Icons.person_add),
-            onPressed: () async {
-              String? userId = await _authController.getCurrentUserId();
-              if (userId != null) {
-                _homeController.addFriendManually(context, userId, _fetchFriends);
-              }
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.logout),
+            icon: const Icon(Icons.logout , color: Colors.white),
             onPressed: _signOut,
           ),
         ],
+        elevation: 4,
       ),
-      body: Column(
+      body: Stack(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: 'Search friends...',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(50)),
-                prefixIcon: const Icon(Icons.search),
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xff6a1b9a), Color(0xff9c27b0)],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
               ),
-              onChanged: _filterFriends,
             ),
           ),
-          Expanded(
-            child: FutureBuilder<List<Map<String, dynamic>>>(
-              future: _friendsFuture,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(child: Text('No friends found.'));
-                }
-                return ListView(
-                  children: filteredFriends
-                      .map((friend) => _buildFriendTile(friend))
-                      .toList(),
-                );
-              },
+          SlideTransition(
+            position: _slideAnimation,
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: TextField(
+                    decoration: InputDecoration(
+                      hintText: 'Search friends...',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(50),
+                        borderSide: BorderSide.none,
+                      ),
+                      prefixIcon: const Icon(Icons.search, color: Colors.black54),
+                      filled: true,
+                      fillColor: Colors.white,
+                    ),
+                    onChanged: _filterFriends,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      String? userId = await _authController.getCurrentUserId();
+                      if (userId != null) {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => EventListPage(friendName: 'Add Your Own Events', userId: userId),
+                          ),
+                        );
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xff6a1b9a),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
+                    ),
+                    child: const Text(
+                      'Add Your Own Events',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: FutureBuilder<List<Map<String, dynamic>>>(
+                    future: _friendsFuture,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      } else if (snapshot.hasError ||
+                          !snapshot.hasData ||
+                          snapshot.data!.isEmpty) {
+                        return const Center(
+                          child: Text('No friends found.',
+                              style: TextStyle(color: Colors.white)),
+                        );
+                      }
+                      return ListView(
+                        children: filteredFriends
+                            .map((friend) => _buildFriendTile(friend))
+                            .toList(),
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          String? userId = await _authController.getCurrentUserId();
+          if (userId != null) {
+            _homeController.addFriendManually(context, userId, _fetchFriends);
+          }
+        },
+        backgroundColor: const Color(0xff9c27b0),
+        child: const Icon(Icons.person_add, color: Colors.white),
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
-        selectedItemColor: Colors.black,
-        unselectedItemColor: Colors.black54,
-        backgroundColor: const Color(0xffba8fe3),
+        selectedItemColor: Colors.white,
+        unselectedItemColor: Colors.white54,
+        backgroundColor: const Color(0xff6a1b9a),
+        type: BottomNavigationBarType.fixed,
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
