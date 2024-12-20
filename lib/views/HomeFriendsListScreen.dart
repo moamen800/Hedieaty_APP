@@ -2,14 +2,14 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:hedieatyfinal/controllers/home_controller.dart';
-import 'package:hedieatyfinal/controllers/event_controller.dart';
-import 'package:hedieatyfinal/controllers/auth_controller.dart';
-import 'package:hedieatyfinal/main.dart';
-import 'package:hedieatyfinal/views/MyPledgedGiftsPage.dart';
-import 'package:hedieatyfinal/views/EventListPage.dart';
-import 'package:hedieatyfinal/views/ProfilePage.dart';
-import 'package:hedieatyfinal/views/SignInPage.dart';
+import 'package:hedieaty/controllers/home_controller.dart';
+import 'package:hedieaty/controllers/event_controller.dart';
+import 'package:hedieaty/controllers/auth_controller.dart';
+import 'package:hedieaty/main.dart';
+import 'package:hedieaty/views/MyPledgedGiftsPage.dart';
+import 'package:hedieaty/views/EventListPage.dart';
+import 'package:hedieaty/views/ProfilePage.dart';
+import 'package:hedieaty/views/SignInPage.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class HomeFriendsListScreen extends StatefulWidget {

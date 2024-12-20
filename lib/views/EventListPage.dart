@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:hedieatyfinal/controllers/event_controller.dart';
+import 'package:hedieaty/controllers/event_controller.dart';
 import 'HomeFriendsListScreen.dart';
 import 'MyPledgedGiftsPage.dart';
 import 'GiftListPage.dart';

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:hedieatyfinal/views/HomeFriendsListScreen.dart';
-import 'package:hedieatyfinal/views/SignUpPage.dart';
+import 'package:hedieaty/views/HomeFriendsListScreen.dart';
+import 'package:hedieaty/views/SignUpPage.dart';
 
 class SignInPage extends StatefulWidget {
   @override

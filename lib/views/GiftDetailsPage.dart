@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:hedieatyfinal/controllers/gift_controller.dart';
-import 'package:hedieatyfinal/views/MyPledgedGiftsPage.dart';
+import 'package:hedieaty/controllers/gift_controller.dart';
+import 'package:hedieaty/views/MyPledgedGiftsPage.dart';
 import 'HomeFriendsListScreen.dart';
 import 'EventListPage.dart';
 import 'ProfilePage.dart';

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:hedieatyfinal/controllers/auth_controller.dart';
-import 'package:hedieatyfinal/controllers/event_controller.dart';
-import 'package:hedieatyfinal/controllers/pledged_controller.dart';
-import 'package:hedieatyfinal/controllers/home_controller.dart';
-import 'package:hedieatyfinal/views/HomeFriendsListScreen.dart';
-import 'package:hedieatyfinal/views/MyPledgedGiftsPage.dart';
-import 'package:hedieatyfinal/views/EventListPage.dart';
-import 'package:hedieatyfinal/views/SignInPage.dart';
+import 'package:hedieaty/controllers/auth_controller.dart';
+import 'package:hedieaty/controllers/event_controller.dart';
+import 'package:hedieaty/controllers/pledged_controller.dart';
+import 'package:hedieaty/controllers/home_controller.dart';
+import 'package:hedieaty/views/HomeFriendsListScreen.dart';
+import 'package:hedieaty/views/MyPledgedGiftsPage.dart';
+import 'package:hedieaty/views/EventListPage.dart';
+import 'package:hedieaty/views/SignInPage.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});

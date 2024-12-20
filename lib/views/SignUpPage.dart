@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:hedieatyfinal/controllers/auth_controller.dart';
+import 'package:hedieaty/controllers/auth_controller.dart';
 import 'SignInPage.dart';
 
 class SignUpPage extends StatefulWidget {

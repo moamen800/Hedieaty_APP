@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:hedieatyfinal/controllers/gift_controller.dart';
-import 'package:hedieatyfinal/controllers/pledged_controller.dart';
-import 'package:hedieatyfinal/models/gift_model.dart';
+import 'package:hedieaty/controllers/gift_controller.dart';
+import 'package:hedieaty/controllers/pledged_controller.dart';
+import 'package:hedieaty/models/gift_model.dart';
 import 'HomeFriendsListScreen.dart';
 import 'MyPledgedGiftsPage.dart';
 import 'GiftDetailsPage.dart';

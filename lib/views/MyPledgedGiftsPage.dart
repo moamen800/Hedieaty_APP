@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:hedieatyfinal/views/HomeFriendsListScreen.dart';
-import 'package:hedieatyfinal/views/EventListPage.dart';
-import 'package:hedieatyfinal/views/ProfilePage.dart';
+import 'package:hedieaty/views/HomeFriendsListScreen.dart';
+import 'package:hedieaty/views/EventListPage.dart';
+import 'package:hedieaty/views/ProfilePage.dart';
 
 class MyPledgedGiftsPage extends StatefulWidget {
   final String userId;
